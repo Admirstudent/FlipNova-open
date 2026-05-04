@@ -1,13 +1,11 @@
 // SubscribeButton.tsx
 import { useUser } from "@clerk/clerk-react";
-import { loadStripe } from "@stripe/stripe-js";
-
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
 export default function SubscribeButton() {
   const { user } = useUser();
 
   const handleSubscribe = async () => {
+    if(!user) { return; }
     const response = await fetch('/create-checkout-session', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

@@ -7,7 +7,7 @@ type ActionButtonProps = {
     loading?: boolean;
 }
 
-function ActionButton({ onClick, loading }) {
+function ActionButton({ onClick, loading }: ActionButtonProps) {
 
     const handleTask = () => {
         onClick();

@@ -10,9 +10,6 @@ import ActionButton from "@/components/ActionButton";
 // services
 import { ProductSearchAnalysis } from "../services/MarketService";
 
-// data types
-import type { MarketSnapshot } from "@/types/market";
-
 export default function MarketSnapshotPage() {
     const { user } = useUser();
 
@@ -70,6 +67,7 @@ export default function MarketSnapshotPage() {
 
   // dynamically update ProductData 
   const UpdateProductData = async (searchQuery: string) => {
+    if(!user) { return; }
     setLoading(true);
     // request service call
     let NewProductData = await ProductSearchAnalysis(searchQuery, user.id);

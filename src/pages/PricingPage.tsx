@@ -1,5 +1,5 @@
 import { useUser, useClerk } from "@clerk/clerk-react";
-import { Check, Zap, ArrowRight } from "lucide-react";
+import { Check, ArrowRight } from "lucide-react";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -66,7 +66,7 @@ export default function PricingPage() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     clerkUserId: user.id,
-                    userEmail: user.primaryEmailAddress.emailAddress,
+                    userEmail: user.primaryEmailAddress?.emailAddress,
                 }),
             });
             const { url } = await response.json();

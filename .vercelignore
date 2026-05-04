@@ -1,0 +1,2 @@
+# Ignore backend and other non-frontend files
+servers/

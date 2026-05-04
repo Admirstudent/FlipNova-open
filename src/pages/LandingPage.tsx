@@ -1,5 +1,4 @@
 // src/pages/LandingPage.tsx
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { SignedIn, SignedOut, SignUpButton } from "@clerk/clerk-react";
 
