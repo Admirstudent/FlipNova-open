@@ -4,7 +4,7 @@ const { PROCESSOR_URL } = require("../config/index.cjs");
 async function processMarketData(payload) {
     try {
         console.log("Sending to FastAPI:", JSON.stringify(payload, null, 2));
-        const response = await axios.post(PROCESSOR_URL, payload);
+        const response = await axios.post(PROCESSOR_URL + "/v1/analyze", payload);
         return response.data;
     } catch (error) {
         console.error("Processor communication failed:", error.message);
