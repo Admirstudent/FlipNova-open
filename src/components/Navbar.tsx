@@ -11,7 +11,7 @@ export default function Navbar() {
                     FlipNova
                 </Link>
 
-                {/* Right side – auth buttons */}
+                {/* Right side – auth buttons */} 
                 <div className="flex items-center gap-3">
                     <SignedOut>
                         <SignInButton mode="modal">
