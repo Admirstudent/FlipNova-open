@@ -1,4 +1,4 @@
-const clerk = require('../config/clerk.cjs');
+const { Webhook } = require('svix');
 const stripe = require('../config/stripe.cjs');
 const UserProfile = require('../models/UserProfile.cjs');
 const {
@@ -8,24 +8,23 @@ const {
 } = require('../services/registrationService.cjs');
 
 exports.handleClerkWebhook = async (req, res) => {
-  console.log('clerk object:', Object.keys(clerk));
-  console.log('clerk.webhooks:', clerk.webhooks);
   try {
-    // Verify the webhook signature
-    const event = await clerk.webhooks.verifyWebhookSignature(
-      req.body,
-      req.headers['svix-id'],
-      req.headers['svix-timestamp'],
-      req.headers['svix-signature'],
-      process.env.CLERK_WEBHOOK_SECRET
-    );
+    const payload = req.body;          // raw body Buffer
+    const headers = req.headers;
+
+    // Verify the webhook signature using Svix
+    const wh = new Webhook(process.env.CLERK_WEBHOOK_SECRET);
+    const event = wh.verify(payload, {
+      'svix-id': headers['svix-id'],
+      'svix-timestamp': headers['svix-timestamp'],
+      'svix-signature': headers['svix-signature'],
+    });
 
     // ---------- USER CREATED ----------
     if (event.type === 'user.created') {
       const user = event.data;
       const clerkUserId = user.id;
 
-      // Create a free‑tier profile
       const profile = new UserProfile({
         clerkUserId,
         tier: 'free',
@@ -33,13 +32,10 @@ exports.handleClerkWebhook = async (req, res) => {
         freeSlotReserved: false,
       });
 
-      // Try to occupy a free slot globally
       const result = await incrementFree();
       if (result.success) {
         profile.freeSlotReserved = true;
       }
-      // If capacity is full, profile is still created but without a slot.
-      // The user can upgrade, or you could block them later.
 
       await profile.save();
       console.log(`Profile created for ${clerkUserId}, slot reserved: ${profile.freeSlotReserved}`);
@@ -70,7 +66,7 @@ exports.handleClerkWebhook = async (req, res) => {
         console.log(`Free slot released for deleted user ${user.id}`);
       }
 
-      // 3. Optionally delete the MongoDB UserProfile (cleanup)
+      // 3. Clean up the MongoDB profile
       await UserProfile.deleteOne({ clerkUserId: user.id });
     }
 
