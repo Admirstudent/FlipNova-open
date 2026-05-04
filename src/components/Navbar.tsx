@@ -1,6 +1,6 @@
 // src/components/Navbar.tsx
 import { Link } from "react-router-dom";
-import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from "@clerk/clerk-react";
+import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from "@clerk/react";
 
 export default function Navbar() {
     return (
