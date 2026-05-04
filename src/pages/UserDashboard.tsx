@@ -25,7 +25,7 @@ function UserDashboard() {
   useEffect(() => {
     if (!user) return;
     setLoading(true);
-    fetch(`https://flip-nova.vercel.app/api/dashboard-stats?clerkUserId=${user.id}`)
+    fetch(`https://flipnova-backend-dafe7abc760b.herokuapp.com/api/dashboard-stats?clerkUserId=${user.id}`)
       .then((res) => res.json())
       .then((data) => {
         setStats(data);
