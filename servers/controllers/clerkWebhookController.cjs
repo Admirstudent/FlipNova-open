@@ -8,6 +8,8 @@ const {
 } = require('../services/registrationService.cjs');
 
 exports.handleClerkWebhook = async (req, res) => {
+  console.log('clerk object:', Object.keys(clerk));
+  console.log('clerk.webhooks:', clerk.webhooks);
   try {
     // Verify the webhook signature
     const event = await clerk.webhooks.verifyWebhookSignature(
