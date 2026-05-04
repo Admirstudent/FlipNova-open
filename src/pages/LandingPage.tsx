@@ -2,9 +2,6 @@
 import { useNavigate } from "react-router-dom";
 import { SignedIn, SignedOut, SignUpButton } from "@clerk/clerk-react";
 
-// component
-import Footer from "../components/Footer";
-
 export default function LandingPage() {
   const navigate = useNavigate();
 
