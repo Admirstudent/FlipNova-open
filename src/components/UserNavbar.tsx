@@ -54,7 +54,7 @@ export default function UserNavbar() {
             ))}
 
             {/* Show Upgrade only if user is not Pro */}
-            {!user?.publicMetadata?.subscriptionStatus && (
+            {user?.publicMetadata?.subscriptionStatus !== 'active' && (
               <Link
                 to="/pricing"
                 className="flex items-center gap-2 text-amber-600 hover:text-amber-700 font-semibold"
@@ -63,7 +63,6 @@ export default function UserNavbar() {
                 <span className="hidden sm:inline">Upgrade</span>
               </Link>
             )}
-
             <UserButton afterSignOutUrl="/" />
           </div>
         </div>
