@@ -32,7 +32,7 @@ export default function Navbar() {
                         >
                             Dashboard
                         </Link>
-                        <UserButton afterSignOutUrl="/" />
+                        <UserButton afterSignOutUrl="/" ></UserButton>
                     </SignedIn>
                 </div>
             </div>

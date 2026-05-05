@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";   // ✅ make sure Button is imported
 import { Search, Percent, Tag, Bookmark } from "lucide-react";
 import { useUser } from "@clerk/clerk-react";
 
@@ -21,6 +22,10 @@ function UserDashboard() {
     snapshots: [],
   });
   const [loading, setLoading] = useState(true);
+  const [cancelling, setCancelling] = useState(false);   // ✅ new state for cancel button
+
+  // Check if user is Pro
+  const isPro = user?.publicMetadata?.subscriptionStatus === 'active';
 
   useEffect(() => {
     if (!user) return;
@@ -36,6 +41,25 @@ function UserDashboard() {
         setLoading(false);
       });
   }, [user]);
+
+  // ✅ Cancel Pro handler
+  const handleCancelPro = async () => {
+    if (!user) return;
+    setCancelling(true);
+    try {
+      const res = await fetch('https://flipnova-backend-dafe7abc760b.herokuapp.com/cancel-subscription', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ clerkUserId: user.id }),
+      });
+      const data = await res.json();
+      alert(data.message || 'Subscription will be cancelled at period end.');
+      window.location.reload();   // refresh to reflect new plan
+    } catch (err) {
+      console.error('Cancel error:', err);
+      setCancelling(false);
+    }
+  };
 
   const {
     searchesToday,
@@ -53,7 +77,6 @@ function UserDashboard() {
   const searchProgressPercent = maxSearches > 0 ? (searchesToday / maxSearches) * 100 : 0;
   const maxCategoryCount = Math.max(...categoryDistribution.map((d: any) => d.count), 1);
 
-  // Price histogram from real snapshots
   const priceBuckets = useMemo(
     () => buildPriceDistribution(snapshots),
     [snapshots]
@@ -65,7 +88,7 @@ function UserDashboard() {
 
   return (
     <div className="flex flex-col gap-6 p-4 max-w-[1500px] mx-auto">
-      {/* Glance stats cards – unchanged except using real data */}
+      {/* Glance stats cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {/* Searches Today */}
         <Card>
@@ -152,10 +175,27 @@ function UserDashboard() {
         </Card>
       </div>
 
-      {/* Price Distribution – now real data */}
+      {/* ✅ Your Plan – only for Pro users */}
+      {isPro && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold">Your Plan</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <p className="text-sm text-muted-foreground">
+              You're on the Pro plan ($9/month). You have unlimited analyses and priority support.
+            </p>
+            <Button variant="outline" disabled={cancelling} onClick={handleCancelPro}>
+              {cancelling ? 'Cancelling…' : 'Cancel Pro'}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Price Distribution */}
       <PriceHistogram data={priceBuckets} title="Your Price Distribution" height={400} />
 
-      {/* Recent Searches – real data */}
+      {/* Recent Searches */}
       <RecentSearches searches={recentSearches} />
     </div>
   );

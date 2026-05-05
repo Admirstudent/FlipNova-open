@@ -12,7 +12,7 @@ import { ProductSearchAnalysis } from "../services/MarketService";
 
 export default function MarketSnapshotPage() {
     const { user } = useUser();
-
+  
   // product data default state
   const [inputValue, setInputValue] = useState("Drone");
 

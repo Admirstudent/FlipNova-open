@@ -142,3 +142,49 @@ exports.handleWebhook = async (req, res) => {
 
     res.json({ received: true });
 };
+
+// paymentController.cjs
+exports.cancelSubscription = async (req, res) => {
+    try {
+        const { clerkUserId } = req.body;
+        if (!clerkUserId) return res.status(400).json({ error: 'clerkUserId required' });
+
+        // 1. Get the user's Stripe subscription ID from the MongoDB profile
+        const profile = await UserProfile.findOne({ clerkUserId });
+        if (!profile || !profile.stripeSubscriptionId) {
+            return res.status(404).json({ error: 'No active subscription found' });
+        }
+
+        // 2. Cancel the Stripe subscription (at period end or immediately)
+        await stripe.subscriptions.update(profile.stripeSubscriptionId, {
+            cancel_at_period_end: true,   // user keeps Pro until the paid period ends
+        });
+
+        // 3. Update Clerk metadata
+        const user = await clerk.users.getUser(clerkUserId);
+        await clerk.users.updateUserMetadata(clerkUserId, {
+            publicMetadata: {
+                ...user.publicMetadata,
+                subscriptionStatus: 'inactive',
+                plan: 'free',
+            },
+        });
+
+        // 4. Downgrade MongoDB profile back to free tier
+        profile.tier = 'free';
+        profile.dailyLimit = 5;
+        profile.stripeSubscriptionId = null;
+        await profile.save();
+
+        // 5. Release the paid registration slot
+        const { decrementPaid, incrementFree } = require('../services/registrationService.cjs');
+        await decrementPaid();
+        // If the original profile had a free slot reserved, we don't re‑increment free here.
+        // The slot will be taken by another user when they sign up.
+
+        res.json({ message: 'Subscription cancelled. You will remain Pro until the end of the billing period.' });
+    } catch (err) {
+        console.error('Cancel subscription error:', err);
+        res.status(500).json({ error: 'Failed to cancel subscription' });
+    }
+};
