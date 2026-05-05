@@ -140,32 +140,38 @@ exports.handleWebhook = async (req, res) => {
     }
 
     // ---------- SUBSCRIPTION DELETED (final downgrade) ----------
+    // ---------- SUBSCRIPTION DELETED (final downgrade) ----------
     if (event.type === "customer.subscription.deleted") {
         const subscription = event.data.object;
-        const clerkUserId = subscription.metadata?.clerkUserId;
+        let clerkUserId = subscription.metadata?.clerkUserId;
+
+        // Fallback: look up in MongoDB by the Stripe subscription ID
+        if (!clerkUserId) {
+            const profile = await UserProfile.findOne({ stripeSubscriptionId: subscription.id });
+            clerkUserId = profile?.clerkUserId;
+        }
 
         if (!clerkUserId) {
-            console.warn("No clerkUserId in subscription.deleted event");
+            console.warn("No clerkUserId found for subscription", subscription.id);
             return res.json({ received: true });
         }
 
         try {
-            // 1. Fetch current user state
-            const user = await clerk.users.getUser(clerkUserId);
-
-            // 2. Idempotency – only downgrade if still considered Pro
-            if (user.publicMetadata?.subscriptionStatus !== 'active') {
-                console.log(`User ${clerkUserId} is already not active – skipping downgrade`);
-                return res.json({ received: true });
-            }
-
             const profile = await UserProfile.findOne({ clerkUserId });
             if (!profile) {
-                console.warn(`No MongoDB profile found for ${clerkUserId}`);
+                console.warn(`No MongoDB profile for ${clerkUserId}`);
                 return res.json({ received: true });
             }
 
-            // 3. Update Clerk metadata to free tier
+            const user = await clerk.users.getUser(clerkUserId);
+
+            // Idempotency check
+            if (user.publicMetadata?.subscriptionStatus !== 'active') {
+                console.log(`User ${clerkUserId} already not active – skipping downgrade`);
+                return res.json({ received: true });
+            }
+
+            // Update Clerk metadata
             await clerk.users.updateUserMetadata(clerkUserId, {
                 publicMetadata: {
                     ...user.publicMetadata,
@@ -176,10 +182,10 @@ exports.handleWebhook = async (req, res) => {
                 },
             });
 
-            // 4. Release the paid registration slot
+            // Release paid slot
             await decrementPaid();
 
-            // 5. Try to occupy a free slot
+            // Try to occupy a free slot
             let freeSlotAcquired = false;
             const result = await incrementFree();
             if (result.success) {
@@ -189,7 +195,7 @@ exports.handleWebhook = async (req, res) => {
                 profile.freeSlotReserved = false;
             }
 
-            // 6. Downgrade the MongoDB profile
+            // Downgrade MongoDB profile
             profile.tier = 'free';
             profile.dailyLimit = 5;
             profile.stripeSubscriptionId = null;
