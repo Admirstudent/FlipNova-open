@@ -86,6 +86,8 @@ function UserDashboard() {
     return <div className="p-10 text-center text-muted-foreground">Loading dashboard…</div>;
   }
 
+  const cancellationScheduled = user?.publicMetadata?.cancelScheduled === true;
+
   return (
     <div className="flex flex-col gap-6 p-4 max-w-[1500px] mx-auto">
       {/* Glance stats cards */}
@@ -175,19 +177,32 @@ function UserDashboard() {
         </Card>
       </div>
 
-      {/* ✅ Your Plan – only for Pro users */}
+      {/* ✅Plan – only for Pro users */}
       {isPro && (
         <Card>
           <CardHeader>
             <CardTitle className="text-lg font-semibold">Your Plan</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            <p className="text-sm text-muted-foreground">
-              You're on the Pro plan ($9/month). You have unlimited analyses and priority support.
-            </p>
-            <Button variant="outline" disabled={cancelling} onClick={handleCancelPro}>
-              {cancelling ? 'Cancelling…' : 'Cancel Pro'}
-            </Button>
+            {cancellationScheduled ? (
+              <>
+                <p className="text-sm text-muted-foreground">
+                  Your Pro plan will end at the end of the billing period. You still have full Pro access until then.
+                </p>
+                <Button variant="outline" disabled>
+                  Cancellation Scheduled
+                </Button>
+              </>
+            ) : (
+              <>
+                <p className="text-sm text-muted-foreground">
+                  You're on the Pro plan ($9/month). You have unlimited analyses and priority support.
+                </p>
+                <Button variant="outline" disabled={cancelling} onClick={handleCancelPro}>
+                  {cancelling ? 'Cancelling…' : 'Cancel Pro'}
+                </Button>
+              </>
+            )}
           </CardContent>
         </Card>
       )}
