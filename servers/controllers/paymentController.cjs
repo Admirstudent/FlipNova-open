@@ -164,7 +164,7 @@ exports.cancelSubscription = async (req, res) => {
         const user = await clerk.users.getUser(clerkUserId);
         await clerk.users.updateUserMetadata(clerkUserId, {
             publicMetadata: {
-                ...user.publicMetadata,
+                ...user.publicMetadata, 
                 subscriptionStatus: 'inactive',
                 plan: 'free',
             },
