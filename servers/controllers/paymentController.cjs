@@ -25,7 +25,6 @@ exports.createCheckoutSession = async (req, res) => {
             subscription_data: { metadata: { clerkUserId } },
         });
 
-        // Only return the Stripe URL – the user hasn't paid yet!
         res.json({ url: session.url });
     } catch (err) {
         console.error("Checkout error:", err);
@@ -71,7 +70,7 @@ exports.verifyCheckoutSession = async (req, res) => {
 };
 
 // ====================================================================
-// 3. Stripe Webhook – the REAL upgrade engine
+// 3. Stripe Webhook – the REAL upgrade engine (idempotent!)
 // ====================================================================
 exports.handleWebhook = async (req, res) => {
     const sig = req.headers["stripe-signature"];
@@ -98,10 +97,16 @@ exports.handleWebhook = async (req, res) => {
         }
 
         try {
-            // 1. Fetch current Clerk user to know if they had a free slot
+            // 1. Fetch current Clerk user to check if they're already Pro
             const user = await clerk.users.getUser(clerkUserId);
 
-            // 2. Update Clerk metadata
+            // 2. 🛡️ Idempotency – skip if already active (prevents double‑upgrade)
+            if (user.publicMetadata?.subscriptionStatus === "active") {
+                console.log(`User ${clerkUserId} is already pro – skipping duplicate webhook`);
+                return res.json({ received: true });
+            }
+
+            // 3. Update Clerk metadata
             await clerk.users.updateUserMetadata(clerkUserId, {
                 publicMetadata: {
                     ...user.publicMetadata,
@@ -111,10 +116,10 @@ exports.handleWebhook = async (req, res) => {
                 },
             });
 
-            // 3. Upgrade the MongoDB UserProfile (sets tier = 'pro', dailyLimit = 25)
+            // 4. Upgrade the MongoDB UserProfile (sets tier = 'pro', dailyLimit = 25)
             await upgradeToPro(clerkUserId, session.subscription);
 
-            // 4. Adjust registration counters
+            // 5. Adjust registration counters
             const hadFreeSlot = user.publicMetadata?.freeSlotReserved === true;
             if (hadFreeSlot) {
                 const result = await swapFreeToPaid();
