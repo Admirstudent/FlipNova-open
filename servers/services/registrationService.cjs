@@ -70,4 +70,4 @@ async function swapFreeToPaid() {
     return { success: true };
 }
 
-module.exports = { initCounter, getCounts, incrementFree, incrementPaid, decrementFree, swapFreeToPaid };
+module.exports = { initCounter, getCounts, incrementFree, incrementPaid, decrementFree, swapFreeToPaid, decrementPaid };
