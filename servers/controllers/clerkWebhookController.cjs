@@ -1,6 +1,8 @@
 const { Webhook } = require('svix');
 const stripe = require('../config/stripe.cjs');
 const UserProfile = require('../models/UserProfile.cjs');
+const clerk = require('../config/clerk.cjs');
+
 const {
   incrementFree,
   decrementFree,
@@ -43,7 +45,7 @@ exports.handleClerkWebhook = async (req, res) => {
       await clerk.users.updateUserMetadata(clerkUserId, {
         publicMetadata: { freeSlotReserved: profile.freeSlotReserved },
       });
-      
+
       console.log(`Profile created for ${clerkUserId}, slot reserved: ${profile.freeSlotReserved}`);
     }
 
