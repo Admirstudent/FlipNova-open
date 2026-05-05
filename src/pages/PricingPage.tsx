@@ -61,7 +61,7 @@ export default function PricingPage() {
         // Start Stripe Checkout flow
         setLoading(true);
         try {
-            const response = await fetch("/create-checkout-session", {
+            const response = await fetch("https://flipnova-backend-dafe7abc760b.herokuapp.com/create-checkout-session", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({

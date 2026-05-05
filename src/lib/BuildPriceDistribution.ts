@@ -1,19 +1,26 @@
-import type { MarketSnapshot } from "../types/market";
-
+// src/lib/BuildPriceDistribution.ts
 export interface PriceBucket {
   range: string;
   count: number;
 }
 
+/**
+ * Builds price distribution buckets from an array of processor response objects
+ * (each containing results.median) OR frontend MarketSnapshot objects (pricing.median).
+ */
 export function buildPriceDistribution(
-  snapshots: MarketSnapshot[],
+  snapshots: any[],   // accept raw processor responses (from dashboard endpoint)
   bucketCount = 60
 ): PriceBucket[] {
-  if (!snapshots.length) return [];
+  if (!snapshots || !snapshots.length) return [];
 
+  // Read median from either location (raw response or typed snapshot)
   const medians = snapshots
-    .map((s) => s.pricing.median)
+    .map((s) => s?.results?.median ?? s?.pricing?.median ?? 0)
+    .filter((m) => m > 0)   // ignore zero/undefined values
     .sort((a, b) => a - b);
+
+  if (medians.length === 0) return [];
 
   const min = medians[0];
   const max = medians[medians.length - 1];
