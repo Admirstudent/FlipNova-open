@@ -1,4 +1,8 @@
 const express = require("express");
+
+// development
+const { forceDowngrade } = require('../controllers/paymentController.cjs');
+
 const router = express.Router();
 const {
     createCheckoutSession,
@@ -11,6 +15,7 @@ const {
 router.post("/create-checkout-session", createCheckoutSession);
 router.post("/verify-checkout-session", verifyCheckoutSession);
 router.post('/cancel-subscription', cancelSubscription);
+router.post('/force-downgrade', forceDowngrade);
 
 // Webhook must be exported separately because it needs raw body
 module.exports = router;

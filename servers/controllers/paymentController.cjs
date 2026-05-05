@@ -140,7 +140,6 @@ exports.handleWebhook = async (req, res) => {
     }
 
     // ---------- SUBSCRIPTION DELETED (final downgrade) ----------
-    // ---------- SUBSCRIPTION DELETED (final downgrade) ----------
     if (event.type === "customer.subscription.deleted") {
         const subscription = event.data.object;
         let clerkUserId = subscription.metadata?.clerkUserId;
@@ -246,5 +245,49 @@ exports.cancelSubscription = async (req, res) => {
     } catch (err) {
         console.error('Cancel subscription error:', err);
         res.status(500).json({ error: 'Failed to schedule cancellation' });
+    }
+};
+
+exports.forceDowngrade = async (req, res) => {
+    try {
+        const { clerkUserId } = req.body;
+        if (!clerkUserId) return res.status(400).json({ error: 'clerkUserId required' });
+
+        const profile = await UserProfile.findOne({ clerkUserId });
+        if (!profile) return res.status(404).json({ error: 'Profile not found' });
+
+        const user = await clerk.users.getUser(clerkUserId);
+
+        // Update Clerk metadata
+        await clerk.users.updateUserMetadata(clerkUserId, {
+            publicMetadata: {
+                ...user.publicMetadata,
+                subscriptionStatus: 'inactive',
+                plan: 'free',
+                stripeSubscriptionId: null,
+                cancelScheduled: false,
+            },
+        });
+
+        // Decrement paid slot and try free slot
+        await decrementPaid();
+        let freeSlotAcquired = false;
+        const result = await incrementFree();
+        if (result.success) {
+            profile.freeSlotReserved = true;
+            freeSlotAcquired = true;
+        } else {
+            profile.freeSlotReserved = false;
+        }
+
+        profile.tier = 'free';
+        profile.dailyLimit = 5;
+        profile.stripeSubscriptionId = null;
+        await profile.save();
+
+        res.json({ message: `Downgraded. Free slot: ${freeSlotAcquired}` });
+    } catch (err) {
+        console.error('Force downgrade error:', err);
+        res.status(500).json({ error: err.message });
     }
 };
