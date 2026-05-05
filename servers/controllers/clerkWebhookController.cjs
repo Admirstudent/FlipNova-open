@@ -38,6 +38,12 @@ exports.handleClerkWebhook = async (req, res) => {
       }
 
       await profile.save();
+
+      // ✅ Sync the flag to Clerk so the Stripe webhook can see it
+      await clerk.users.updateUserMetadata(clerkUserId, {
+        publicMetadata: { freeSlotReserved: profile.freeSlotReserved },
+      });
+      
       console.log(`Profile created for ${clerkUserId}, slot reserved: ${profile.freeSlotReserved}`);
     }
 
