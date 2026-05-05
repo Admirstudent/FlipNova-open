@@ -24,7 +24,7 @@ if (!EBAY_CLIENT_ID || !EBAY_CLIENT_SECRET) {
     process.exit(1);
 }
 
-const app = express();
+const app = express(); 
 
 app.post(
   '/clerk-webhook',
