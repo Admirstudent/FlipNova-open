@@ -1,6 +1,7 @@
 const stripe = require("../config/stripe.cjs");
 const clerk = require("../config/clerk.cjs");
 const { CLIENT_URL } = require("../config/index.cjs");
+const UserProfile = require('../models/UserProfile.cjs');
 const {
     swapFreeToPaid,
     incrementPaid,
