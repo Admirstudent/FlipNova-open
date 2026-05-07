@@ -155,3 +155,8 @@
     @apply font-sans;
   }
 }
+
+/* elements */
+button {
+  cursor: pointer;
+}

@@ -33,7 +33,7 @@ async function getApplicationToken() {
 }
 
 async function fetchActiveListings(searchQuery) {
-    const url = `${BROWSE_HOST}/item_summary/search?q=${encodeURIComponent(searchQuery)}&limit=10`;
+    const url = `${BROWSE_HOST}/item_summary/search?q=${encodeURIComponent(searchQuery)}&limit=200`;
     const token = await getApplicationToken();
     if (!token) throw new Error("EBAY_AUTH_FAILED");
     try {
@@ -56,7 +56,7 @@ async function fetchActiveListings(searchQuery) {
 }
 
 async function fetchSoldListings(searchQuery) {
-    const url = `${BROWSE_HOST}/item_summary/search?q=${encodeURIComponent(searchQuery)}&limit=10&filter=soldItemsOnly:true`;
+    const url = `${BROWSE_HOST}/item_summary/search?q=${encodeURIComponent(searchQuery)}&limit=200&filter=soldItemsOnly:true`;
     const token = await getApplicationToken();
     if (!token) throw new Error("EBAY_AUTH_FAILED");
     try {
