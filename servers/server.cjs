@@ -5,9 +5,13 @@ require("dotenv").config({ path: path.resolve(__dirname, "../.env") });
 const express = require("express");
 const connectDB = require("./config/db.cjs");
 const globalMiddleware = require("./middleware/global.cjs");
+
+// routes
 const analyzeRoutes = require("./routes/analyzeRoutes.cjs");
 const paymentRoutes = require("./routes/paymentRoutes.cjs");
 const { webhookHandler } = require("./routes/paymentRoutes.cjs"); // webhook handler
+const ebayRoutes = require('./routes/ebayRoutes.cjs');
+
 const { healthCheck } = require("./controllers/healthController.cjs");
 const { initCounter } = require('./services/registrationService.cjs');
 const { handleClerkWebhook } = require('./controllers/clerkWebhookController.cjs');
@@ -24,12 +28,12 @@ if (!EBAY_CLIENT_ID || !EBAY_CLIENT_SECRET) {
     process.exit(1);
 }
 
-const app = express(); 
+const app = express();
 
 app.post(
-  '/clerk-webhook',
-  express.raw({ type: 'application/json' }),
-  handleClerkWebhook
+    '/clerk-webhook',
+    express.raw({ type: 'application/json' }),
+    handleClerkWebhook
 );
 
 // Stripe webhook MUST come before JSON parsing (raw body)
@@ -45,7 +49,8 @@ globalMiddleware(app);
 // Routes
 app.get("/health", healthCheck);
 app.use("/api", analyzeRoutes);
-app.use("/", paymentRoutes); // /create-checkout-session, /verify-checkout-session
+app.use("/", paymentRoutes);
+app.use("/", ebayRoutes);
 
 // Start
 const PORT = process.env.PORT || 4000;
