@@ -2,17 +2,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Clock } from "lucide-react";
+import type { SearchItem } from "@/types/dashboard";   // ✅ import
 
-interface SearchItem {
-  product: string;
-  date: string;          // ISO string
-  signal: string;
-  confidence: number;
-  medianPrice: number;
-  sellThrough: number;
-}
-
-export default function RecentSearches({ searches }: { searches: SearchItem[] }) {
+export default function RecentSearches({ searches, onView }: { searches: SearchItem[]; onView?: (item: SearchItem) => void;}) {
   const maxPrice = Math.max(...searches.map((item) => item.medianPrice), 1);
 
   // Helper to format relative time – you can enhance this
@@ -97,7 +89,7 @@ export default function RecentSearches({ searches }: { searches: SearchItem[] })
               </Badge>
 
               {/* Re-run button – you can wire this up later */}
-              <Button variant="ghost" size="icon" className="h-8 w-8">
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onView?.(item)}>
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </div>

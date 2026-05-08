@@ -176,7 +176,7 @@ export default function MarketSnapshotPage() {
                   <div className="rounded-lg border border-primary/30 bg-primary/5 p-4">
                     <div className="flex items-center gap-2 mb-3 text-xs font-semibold uppercase text-primary">
                       <span className="h-2 w-2 rounded-full bg-primary" />
-                      Orion Decision Signal
+                      Market Snapshot Decision Signal
                     </div>
                     <div className="flex items-end justify-between gap-4">
                       <span className="text-3xl font-bold tracking-tight">{product.decision.signal}</span>

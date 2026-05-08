@@ -1,12 +1,21 @@
 import { useEffect, useState, useMemo } from "react";
+
+import { Search, Percent, Tag, Bookmark } from "lucide-react";
+
+import { useUser } from "@clerk/clerk-react";
+// lib
+import { transformProcessorResponse } from "@/lib/transformSnapshot";
+import { buildPriceDistribution } from "../lib/BuildPriceDistribution";
+
+// components
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";   // ✅ make sure Button is imported
-import { Search, Percent, Tag, Bookmark } from "lucide-react";
-import { useUser } from "@clerk/clerk-react";
-
-import { buildPriceDistribution } from "../lib/BuildPriceDistribution";
+import SnapshotModal from "@/components/SnapshotModal";
 import PriceHistogram from "../components/PriceHistrogram";
 import RecentSearches from "../components/RecentSearches";
+
+// types
+import { type SearchItem } from "@/types/dashboard";
 
 function UserDashboard() {
   const { user } = useUser();
@@ -87,6 +96,18 @@ function UserDashboard() {
   }
 
   const cancellationScheduled = user?.publicMetadata?.cancelScheduled === true;
+
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedSnapshot, setSelectedSnapshot] = useState<any>(null);
+  const [selectedSearchQuery, setSelectedSearchQuery] = useState("");
+
+  const handleViewSnapshot = (item: SearchItem) => {
+    if (item.snapshot && item.searchQuery) {
+      setSelectedSnapshot(item.snapshot);
+      setSelectedSearchQuery(item.searchQuery);
+      setModalOpen(true);
+    }
+  };
 
   return (
     <div className="flex flex-col gap-6 p-4 max-w-[1500px] mx-auto">
@@ -211,7 +232,16 @@ function UserDashboard() {
       <PriceHistogram data={priceBuckets} title="Your Price Distribution" height={400} />
 
       {/* Recent Searches */}
-      <RecentSearches searches={recentSearches} />
+      <RecentSearches searches={recentSearches} onView={handleViewSnapshot} />
+
+      {/* Modal */}
+      {selectedSnapshot && (
+        <SnapshotModal
+          open={modalOpen}
+          onOpenChange={setModalOpen}
+          snapshot={transformProcessorResponse(selectedSnapshot, selectedSearchQuery)}
+        />
+      )}
     </div>
   );
 }

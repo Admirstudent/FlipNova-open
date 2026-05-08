@@ -65,6 +65,8 @@ exports.getDashboardStats = async (req, res) => {
         medianPrice: snap.results?.median || snap.pricing?.median || 0,
         signal: snap.results?.market_condition || snap.decision?.signal || 'N/A',
         confidence: snap.summary?.confidence || snap.decision?.confidence || 0,
+        snapshot: analysis.marketSnapshot,    // raw processor response
+        searchQuery: analysis.searchQuery,    // original search term
       };
     });
 
