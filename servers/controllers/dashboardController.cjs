@@ -59,15 +59,16 @@ exports.getDashboardStats = async (req, res) => {
     const recentSearches = allAnalyses.slice(0, 10).map(analysis => {
       const snap = analysis.marketSnapshot || {};
       return {
+        id: analysis._id.toString(),            // ← add this line
+        saved: analysis.saved || false,         // ← ensure this is present
         product: analysis.searchQuery,
         date: analysis.date,
         sellThrough: analysis.sellThroughRate,
         medianPrice: snap.results?.median || snap.pricing?.median || 0,
         signal: snap.results?.market_condition || snap.decision?.signal || 'N/A',
         confidence: snap.summary?.confidence || snap.decision?.confidence || 0,
-        snapshot: analysis.marketSnapshot,    // raw processor response
-        searchQuery: analysis.searchQuery,    // original search term
-        saved: analysis.saved
+        snapshot: analysis.marketSnapshot,
+        searchQuery: analysis.searchQuery,
       };
     });
 
