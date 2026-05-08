@@ -1,13 +1,18 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Clock } from "lucide-react";
-import type { SearchItem } from "@/types/dashboard";   // ✅ import
+import { ArrowRight, Clock, Bookmark } from "lucide-react";
+import type { SearchItem } from "@/types/dashboard";
 
-export default function RecentSearches({ searches, onView }: { searches: SearchItem[]; onView?: (item: SearchItem) => void;}) {
+interface RecentSearchesProps {
+  searches: SearchItem[];
+  onView?: (item: SearchItem) => void;
+  onToggleSaved?: (id: string) => void;
+}
+
+export default function RecentSearches({ searches, onView, onToggleSaved }: RecentSearchesProps) {
   const maxPrice = Math.max(...searches.map((item) => item.medianPrice), 1);
 
-  // Helper to format relative time – you can enhance this
   const timeAgo = (dateStr: string) => {
     const now = new Date();
     const then = new Date(dateStr);
@@ -28,7 +33,7 @@ export default function RecentSearches({ searches, onView }: { searches: SearchI
       <CardContent className="space-y-4">
         {searches.map((item, idx) => (
           <div
-            key={idx}
+            key={item.id ?? idx}
             className="flex items-center justify-between border-b pb-3 last:border-0 last:pb-0"
           >
             {/* Left: product name + time */}
@@ -88,7 +93,25 @@ export default function RecentSearches({ searches, onView }: { searches: SearchI
                 {item.signal} ({item.confidence}%)
               </Badge>
 
-              {/* Re-run button – you can wire this up later */}
+              {/* Bookmark button */}
+              {item.id && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation(); // prevent triggering onView
+                    onToggleSaved?.(item.id!);
+                  }}
+                  className={`p-1 rounded-full transition-colors ${
+                    item.saved
+                      ? "text-amber-600 bg-amber-100 hover:bg-amber-200"
+                      : "text-muted-foreground hover:bg-muted"
+                  }`}
+                  title={item.saved ? "Remove bookmark" : "Bookmark this analysis"}
+                >
+                  <Bookmark className="h-4 w-4" fill={item.saved ? "currentColor" : "none"} />
+                </button>
+              )}
+
+              {/* View button */}
               <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onView?.(item)}>
                 <ArrowRight className="h-4 w-4" />
               </Button>

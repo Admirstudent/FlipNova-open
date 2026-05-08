@@ -67,6 +67,7 @@ exports.getDashboardStats = async (req, res) => {
         confidence: snap.summary?.confidence || snap.decision?.confidence || 0,
         snapshot: analysis.marketSnapshot,    // raw processor response
         searchQuery: analysis.searchQuery,    // original search term
+        saved: analysis.saved
       };
     });
 
@@ -90,5 +91,21 @@ exports.getDashboardStats = async (req, res) => {
   } catch (err) {
     console.error('Dashboard stats error:', err);
     res.status(500).json({ error: 'Failed to load dashboard stats' });
+  }
+};
+
+exports.toggleSaved = async (req, res) => {
+  try {
+    const { analysisId } = req.params;
+    const record = await AnalysisRecord.findById(analysisId);
+    if (!record) return res.status(404).json({ error: 'Record not found' });
+
+    record.saved = !record.saved;
+    await record.save();
+
+    res.json({ saved: record.saved });
+  } catch (err) {
+    console.error('Toggle saved error:', err);
+    res.status(500).json({ error: 'Failed to toggle saved' });
   }
 };

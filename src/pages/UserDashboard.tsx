@@ -1,21 +1,18 @@
+// src/pages/UserDashboard.tsx
 import { useEffect, useState, useMemo } from "react";
-
 import { Search, Percent, Tag, Bookmark } from "lucide-react";
-
 import { useUser } from "@clerk/clerk-react";
-// lib
+
 import { transformProcessorResponse } from "@/lib/transformSnapshot";
 import { buildPriceDistribution } from "../lib/BuildPriceDistribution";
 
-// components
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";   // ✅ make sure Button is imported
+import { Button } from "@/components/ui/button";
 import SnapshotModal from "@/components/SnapshotModal";
 import PriceHistogram from "../components/PriceHistrogram";
 import RecentSearches from "../components/RecentSearches";
 
-// types
-import { type SearchItem } from "@/types/dashboard";
+import type { SearchItem } from "@/types/dashboard";
 
 function UserDashboard() {
   const { user } = useUser();
@@ -31,7 +28,14 @@ function UserDashboard() {
     snapshots: [],
   });
   const [loading, setLoading] = useState(true);
-  const [cancelling, setCancelling] = useState(false);   // ✅ new state for cancel button
+  const [cancelling, setCancelling] = useState(false);
+
+  // Modal state
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedSnapshot, setSelectedSnapshot] = useState<any>(null);
+  const [selectedSearchQuery, setSelectedSearchQuery] = useState("");
+  const [selectedAnalysisId, setSelectedAnalysisId] = useState<string | null>(null);
+  const [selectedSaved, setSelectedSaved] = useState(false);
 
   // Check if user is Pro
   const isPro = user?.publicMetadata?.subscriptionStatus === 'active';
@@ -51,7 +55,7 @@ function UserDashboard() {
       });
   }, [user]);
 
-  // ✅ Cancel Pro handler
+  // Cancel Pro handler
   const handleCancelPro = async () => {
     if (!user) return;
     setCancelling(true);
@@ -63,10 +67,42 @@ function UserDashboard() {
       });
       const data = await res.json();
       alert(data.message || 'Subscription will be cancelled at period end.');
-      window.location.reload();   // refresh to reflect new plan
+      window.location.reload();
     } catch (err) {
       console.error('Cancel error:', err);
       setCancelling(false);
+    }
+  };
+
+  // Toggle saved status
+  const handleToggleSaved = async (analysisId: string) => {
+    try {
+      const res = await fetch(`https://flipnova-backend-dafe7abc760b.herokuapp.com/api/saved/${analysisId}`, {
+        method: 'PUT',
+      });
+      const data = await res.json();
+      if (data.saved !== undefined) {
+        setStats(prev => ({
+          ...prev,
+          savedAnalyses: data.saved ? prev.savedAnalyses + 1 : prev.savedAnalyses - 1,
+        }));
+        // Also update localSelected if modal is open for this item
+        if (analysisId === selectedAnalysisId) {
+          setSelectedSaved(data.saved);
+        }
+      }
+    } catch (err) {
+      console.error('Toggle saved error:', err);
+    }
+  };
+
+  const handleViewSnapshot = (item: SearchItem) => {
+    if (item.snapshot && item.searchQuery) {
+      setSelectedSnapshot(item.snapshot);
+      setSelectedSearchQuery(item.searchQuery);
+      setSelectedAnalysisId(item.id ?? null);
+      setSelectedSaved(item.saved ?? false);
+      setModalOpen(true);
     }
   };
 
@@ -96,18 +132,6 @@ function UserDashboard() {
   }
 
   const cancellationScheduled = user?.publicMetadata?.cancelScheduled === true;
-
-  const [modalOpen, setModalOpen] = useState(false);
-  const [selectedSnapshot, setSelectedSnapshot] = useState<any>(null);
-  const [selectedSearchQuery, setSelectedSearchQuery] = useState("");
-
-  const handleViewSnapshot = (item: SearchItem) => {
-    if (item.snapshot && item.searchQuery) {
-      setSelectedSnapshot(item.snapshot);
-      setSelectedSearchQuery(item.searchQuery);
-      setModalOpen(true);
-    }
-  };
 
   return (
     <div className="flex flex-col gap-6 p-4 max-w-[1500px] mx-auto">
@@ -198,7 +222,7 @@ function UserDashboard() {
         </Card>
       </div>
 
-      {/* ✅Plan – only for Pro users */}
+      {/* Plan card – only for Pro users */}
       {isPro && (
         <Card>
           <CardHeader>
@@ -240,6 +264,9 @@ function UserDashboard() {
           open={modalOpen}
           onOpenChange={setModalOpen}
           snapshot={transformProcessorResponse(selectedSnapshot, selectedSearchQuery)}
+          analysisId={selectedAnalysisId ?? undefined}
+          saved={selectedSaved}
+          onToggleSaved={handleToggleSaved}
         />
       )}
     </div>
