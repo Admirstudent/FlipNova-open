@@ -43,20 +43,25 @@ exports.analyze = async (req, res) => {
     }
 
     // ---------- 2. Fetch listings and run analysis ----------
-    const [activeItems, soldItems] = await Promise.all([
+    const [activeResult, soldResult] = await Promise.all([
       fetchActiveListings(searchQuery),
       fetchSoldListings(searchQuery),
     ]);
 
-    if (activeItems.length === 0 && soldItems.length === 0) {
+    const activeItems = activeResult.items;
+    const soldItems = soldResult.items;
+    const activeTotal = activeResult.total;
+    const soldTotal = soldResult.total;
+
+    if (activeTotal === 0 && soldTotal === 0) {
       return res.json({ error: "EMPTY_DATASET", status: 404, message: "No listings found." });
     }
 
     const payload = {
       active: activeItems,
       sold: soldItems,
-      activeCount: activeItems.length,
-      soldCount: soldItems.length,
+      activeCount: activeTotal,
+      soldCount: soldTotal,
     };
 
     const processorResponse = await processMarketData(payload);

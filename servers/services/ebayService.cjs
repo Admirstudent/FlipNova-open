@@ -48,10 +48,13 @@ async function fetchActiveListings(searchQuery) {
         });
         if (!res.ok) throw new Error(`Active search failed: ${res.status}`);
         const data = await res.json();
-        return data.itemSummaries || [];
+        return {
+            items: data.itemSummaries || [],
+            total: data.total || (data.itemSummaries ? data.itemSummaries.length : 0)
+        };
     } catch (err) {
         console.error("Active search error:", err.message);
-        return [];
+        return { items: [], total: 0 };
     }
 }
 
@@ -71,10 +74,13 @@ async function fetchSoldListings(searchQuery) {
         });
         if (!res.ok) throw new Error(`Sold search failed: ${res.status}`);
         const data = await res.json();
-        return data.itemSummaries || [];
+        return {
+            items: data.itemSummaries || [],
+            total: data.total || (data.itemSummaries ? data.itemSummaries.length : 0)
+        };
     } catch (err) {
         console.error("Sold search error:", err.message);
-        return [];
+        return { items: [], total: 0 };
     }
 }
 

@@ -97,14 +97,13 @@ export default function RecentSearches({ searches, onView, onToggleSaved }: Rece
               {item.id && (
                 <button
                   onClick={(e) => {
-                    e.stopPropagation(); // prevent triggering onView
+                    e.stopPropagation();
                     onToggleSaved?.(item.id!);
                   }}
-                  className={`p-1 rounded-full transition-colors ${
-                    item.saved
-                      ? "text-amber-600 bg-amber-100 hover:bg-amber-200"
-                      : "text-muted-foreground hover:bg-muted"
-                  }`}
+                  className={`p-1.5 rounded-full transition-colors ${item.saved
+                      ? "text-amber-600 bg-amber-100 hover:bg-amber-200 ring-1 ring-amber-300"
+                      : "text-gray-400 bg-gray-100 hover:bg-gray-200 ring-1 ring-gray-300"
+                    }`}
                   title={item.saved ? "Remove bookmark" : "Bookmark this analysis"}
                 >
                   <Bookmark className="h-4 w-4" fill={item.saved ? "currentColor" : "none"} />

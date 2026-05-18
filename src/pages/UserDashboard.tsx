@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import SnapshotModal from "@/components/SnapshotModal";
 import PriceHistogram from "../components/PriceHistrogram";
 import RecentSearches from "../components/RecentSearches";
+import SavedSearchesModal from "@/components/SavedSearchesModal";
 
 import type { SearchItem } from "@/types/dashboard";
 
@@ -36,6 +37,7 @@ function UserDashboard() {
   const [selectedSearchQuery, setSelectedSearchQuery] = useState("");
   const [selectedAnalysisId, setSelectedAnalysisId] = useState<string | null>(null);
   const [selectedSaved, setSelectedSaved] = useState(false);
+  const [savedModalOpen, setSavedModalOpen] = useState(false);
 
   // Check if user is Pro
   const isPro = user?.publicMetadata?.subscriptionStatus === 'active';
@@ -76,23 +78,37 @@ function UserDashboard() {
 
   // Toggle saved status
   const handleToggleSaved = async (analysisId: string) => {
+    const item = stats.recentSearches.find(i => i.id === analysisId);
+    if (!item) return;
+
+    const newSaved = !item.saved;
+    const delta = newSaved ? 1 : -1;
+
+    // Optimistic update – immediate UI change
+    setStats(prev => ({
+      ...prev,
+      recentSearches: prev.recentSearches.map(i =>
+        i.id === analysisId ? { ...i, saved: newSaved } : i
+      ),
+      savedAnalyses: prev.savedAnalyses + delta,
+    }));
+
     try {
-      const res = await fetch(`https://flipnova-backend-dafe7abc760b.herokuapp.com/api/saved/${analysisId}`, {
-        method: 'PUT',
-      });
-      const data = await res.json();
-      if (data.saved !== undefined) {
-        setStats(prev => ({
-          ...prev,
-          savedAnalyses: data.saved ? prev.savedAnalyses + 1 : prev.savedAnalyses - 1,
-        }));
-        // Also update localSelected if modal is open for this item
-        if (analysisId === selectedAnalysisId) {
-          setSelectedSaved(data.saved);
-        }
-      }
+      const res = await fetch(
+        `https://flipnova-backend-dafe7abc760b.herokuapp.com/api/saved/${analysisId}`,
+        { method: 'PUT' }
+      );
+      if (!res.ok) throw new Error('Server denied');
     } catch (err) {
       console.error('Toggle saved error:', err);
+      // Revert the optimistic change on failure
+      setStats(prev => ({
+        ...prev,
+        recentSearches: prev.recentSearches.map(i =>
+          i.id === analysisId ? { ...i, saved: !newSaved } : i
+        ),
+        savedAnalyses: prev.savedAnalyses - delta,
+      }));
     }
   };
 
@@ -106,13 +122,18 @@ function UserDashboard() {
     }
   };
 
+  const handleViewFromSaved = (item: SearchItem) => {
+    setSavedModalOpen(false);
+    handleViewSnapshot(item);
+  };
+  console.log(stats);
   const {
     searchesToday,
     maxSearches,
     avgSellThrough,
-    topCategory,
+    // topCategory,
     savedAnalyses,
-    categoryDistribution,
+    // categoryDistribution,
     sellThroughHistory,
     recentSearches,
     snapshots,
@@ -120,7 +141,6 @@ function UserDashboard() {
 
   const remaining = maxSearches - searchesToday;
   const searchProgressPercent = maxSearches > 0 ? (searchesToday / maxSearches) * 100 : 0;
-  const maxCategoryCount = Math.max(...categoryDistribution.map((d: any) => d.count), 1);
 
   const priceBuckets = useMemo(
     () => buildPriceDistribution(snapshots),
@@ -182,44 +202,19 @@ function UserDashboard() {
           </CardContent>
         </Card>
 
-        {/* Top Category */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Top Category</CardTitle>
-            <Tag className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <div className="text-xl font-bold truncate" title={topCategory}>
-              {topCategory}
-            </div>
-            <div className="space-y-1">
-              {categoryDistribution.slice(0, 3).map((cat: any) => (
-                <div key={cat.name} className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground w-20 truncate">{cat.name}</span>
-                  <div className="flex-1 h-2 rounded-full bg-muted">
-                    <div
-                      className="h-full rounded-full bg-primary/60"
-                      style={{ width: `${(cat.count / maxCategoryCount) * 100}%` }}
-                    />
-                  </div>
-                  <span className="text-xs text-muted-foreground">{cat.count}</span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
         {/* Saved Analyses */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Saved</CardTitle>
-            <Bookmark className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{savedAnalyses}</div>
-            <p className="text-xs text-muted-foreground mt-1">bookmarked snapshots</p>
-          </CardContent>
-        </Card>
+        <div onClick={() => setSavedModalOpen(true)} className="cursor-pointer">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Saved</CardTitle>
+              <Bookmark className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{savedAnalyses}</div>
+              <p className="text-xs text-muted-foreground mt-1">bookmarked snapshots</p>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       {/* Plan card – only for Pro users */}
@@ -256,11 +251,15 @@ function UserDashboard() {
       <PriceHistogram data={priceBuckets} title="Your Price Distribution" height={400} />
 
       {/* Recent Searches */}
-      <RecentSearches searches={recentSearches} onView={handleViewSnapshot} />
-
+      <RecentSearches
+        searches={recentSearches}
+        onView={handleViewSnapshot}
+        onToggleSaved={handleToggleSaved}   // ← add this line
+      />
       {/* Modal */}
       {selectedSnapshot && (
         <SnapshotModal
+          key={selectedAnalysisId}   // ← forces remount when analysis changes
           open={modalOpen}
           onOpenChange={setModalOpen}
           snapshot={transformProcessorResponse(selectedSnapshot, selectedSearchQuery)}
@@ -269,6 +268,14 @@ function UserDashboard() {
           onToggleSaved={handleToggleSaved}
         />
       )}
+
+      {/* Saved Analyses Modal */}
+      <SavedSearchesModal
+        open={savedModalOpen}
+        onClose={() => setSavedModalOpen(false)}
+        savedItems={recentSearches.filter((item: SearchItem) => item.saved)}
+        onView={handleViewFromSaved}
+      />
     </div>
   );
 }
