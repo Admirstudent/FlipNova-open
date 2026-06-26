@@ -1,7 +1,7 @@
 // src/components/UserNavbar.tsx
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, Search, BookOpen, Crown } from "lucide-react";
+import { LayoutDashboard, Search, Crown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { SignedIn, UserButton, useUser } from "@clerk/clerk-react";
 
@@ -10,7 +10,6 @@ import "./UserNavbar.css";
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/app", label: "Snapshot", icon: Search },
-  { href: "/docs", label: "Docs", icon: BookOpen },
 ];
 
 export default function UserNavbar() {

@@ -31,7 +31,7 @@ function App() {
         >
           <Route path="/" element={<LandingPage />} />
           <Route path="/landing" element={<LandingPage />} />
-          <Route path="/docs" element={<div>Documentation</div>} />
+          {/* /docs placeholder removed — mock portfolio */}
           <Route path="/pricing" element={<PricingPage />} />
         </Route>
 

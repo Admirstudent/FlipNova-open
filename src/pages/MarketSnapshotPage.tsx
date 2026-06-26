@@ -12,6 +12,7 @@ import ActionButton from "@/components/ActionButton";
 // services
 import { ProductSearchAnalysis } from "../services/MarketService";
 import { type MarketSnapshot } from "../types/market";
+import { sampleSnapshots } from "../data/SampleSnapshot";
 
 export default function MarketSnapshotPage() {
   const { user } = useUser();
@@ -25,21 +26,21 @@ export default function MarketSnapshotPage() {
   // ProductData
   const [product, setProduct] = useState<MarketSnapshot | null>(null);
 
-  // dynamically update ProductData 
+  // dynamically update ProductData — falls back to mock data when backend is offline
   const UpdateProductData = async (searchQuery: string) => {
     if (!user) { return; }
     setLoading(true);
-    // request service call
-    let NewProductData = await ProductSearchAnalysis(searchQuery, user.id);
-    setProduct(NewProductData);
-
-    // log the results
-    console.log(NewProductData);
+    try {
+      const NewProductData = await ProductSearchAnalysis(searchQuery, user.id);
+      setProduct(NewProductData);
+      fetchStats();
+    } catch {
+      // Backend offline — use mock data for portfolio demo
+      const mockIndex = Math.abs(Array.from(searchQuery).reduce((acc, c) => acc + c.charCodeAt(0), 0)) % sampleSnapshots.length;
+      const mockSnapshot = { ...sampleSnapshots[mockIndex], productName: searchQuery };
+      setProduct(mockSnapshot);
+    }
     setLoading(false);
-
-    // refresh analysis button component
-    fetchStats();
-    console.log(stats);
   }
 
   // set user data
