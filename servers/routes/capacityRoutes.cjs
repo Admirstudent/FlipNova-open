@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { getCounts } = require('../services/registrationService.cjs');
-const { MAX_FREE_USERS, MAX_PAID_USERS } = require('../config.cjs');
+const { MAX_FREE_USERS, MAX_PAID_USERS } = require('../config/index.cjs');
 
 router.get('/capacity', async (req, res) => {
     try {

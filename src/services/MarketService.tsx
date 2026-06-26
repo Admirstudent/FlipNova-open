@@ -4,7 +4,7 @@ import axios from "axios";
 import { type MarketSnapshot } from "../types/market";
 
 export const ProductSearchAnalysis = async (searchQuery: string, clerkUserId: string): Promise<MarketSnapshot> => {
-    const { data } = await axios.post("https://flipnova-backend-dafe7abc760b.herokuapp.com/api/analyze", { searchQuery, clerkUserId });
+    const { data } = await axios.post("http://localhost:4500/api/analyze", { searchQuery, clerkUserId });
 
     const { summary, results } = data; // destructure the known response
 
@@ -24,23 +24,14 @@ export const ProductSearchAnalysis = async (searchQuery: string, clerkUserId: st
             fillPercentage: 0, // placeholder – not yet provided by processor
         },
 
-        demand: {
-            sellThroughRate: summary.sell_through_rate,
-            activityLevel: summary.activity_level,
-        },
-
         competition: {
             activeListings: summary.active_listings,
-            soldListings: summary.sold_listings,
             level: summary.competition_level,
-            ratio:
-                summary.sold_listings > 0
-                    ? +(summary.active_listings / summary.sold_listings).toFixed(1)
-                    : 0,
+            saturation: summary.market_saturation || "Unknown",
         },
 
-        market: {
-            velocity: summary.market_velocity,
+        volatility: {
+            priceVolatility: summary.price_volatility || "Low",
             varianceIndex: summary.variance_index,
         },
 

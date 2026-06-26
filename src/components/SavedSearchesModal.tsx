@@ -62,8 +62,7 @@ export default function SavedSearchesModal({
                 <div className="min-w-0 flex-1">
                   <p className="font-medium truncate">{item.product}</p>
                   <p className="text-xs text-muted-foreground">
-                    Median: ${item.medianPrice} · Sell‑through: {item.sellThrough}% ·{" "}
-                    {item.signal}
+                    Median: ${item.medianPrice} · {item.signal} ({item.confidence}%)
                   </p>
                 </div>
                 <div className="flex items-center gap-2 ml-3">

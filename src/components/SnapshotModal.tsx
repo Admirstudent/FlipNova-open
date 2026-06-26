@@ -53,9 +53,8 @@ export default function SnapshotModal({
     region,
     decision,
     pricing,
-    demand,
     competition,
-    market,
+    volatility,
     metadata,
   } = snapshot;
 
@@ -63,7 +62,7 @@ export default function SnapshotModal({
   const conditionColor =
     decision.confidence < 50
       ? "text-red-600 bg-red-50 border-red-200"
-      : demand.sellThroughRate >= 40
+      : competition.level === "Low"
       ? "text-emerald-600 bg-emerald-50 border-emerald-200"
       : "text-amber-600 bg-amber-50 border-amber-200";
 
@@ -148,16 +147,16 @@ export default function SnapshotModal({
           <div className="grid grid-cols-3 gap-3">
             {[
               {
-                label: "Sell‑Through",
-                value: `${demand.sellThroughRate}%`,
-                icon: TrendingUp,
-                color: "text-emerald-600",
-              },
-              {
-                label: "Market Velocity",
-                value: market.velocity,
+                label: "Confidence",
+                value: `${decision.confidence}%`,
                 icon: BarChart3,
                 color: "text-blue-600",
+              },
+              {
+                label: "Volatility",
+                value: volatility.priceVolatility,
+                icon: TrendingUp,
+                color: "text-amber-600",
               },
               {
                 label: "Active Listings",
@@ -222,19 +221,19 @@ export default function SnapshotModal({
                 icon: Users,
                 rows: [
                   { label: "Active Listings", value: competition.activeListings },
-                  { label: "Sold (30d)", value: competition.soldListings },
                   { label: "Level", value: competition.level },
-                  { label: "A:S Ratio", value: competition.ratio.toFixed(1) },
+                  { label: "Saturation", value: competition.saturation },
+                  { label: "Confidence", value: `${decision.confidence}%` },
                 ],
               },
               {
-                title: "Market Stats",
+                title: "Pricing Volatility",
                 icon: Info,
                 rows: [
-                  { label: "Variance Index", value: market.varianceIndex },
+                  { label: "Volatility", value: volatility.priceVolatility },
+                  { label: "Variance Index", value: volatility.varianceIndex },
                   { label: "Sample Size", value: metadata.rawCount },
                   { label: "Refined", value: metadata.refinedCount },
-                  { label: "Confidence", value: `${decision.confidence}%` },
                 ],
               },
             ].map((section) => (

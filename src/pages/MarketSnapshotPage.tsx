@@ -50,7 +50,7 @@ export default function MarketSnapshotPage() {
 
   const fetchStats = () => {
     if (!user) return;
-    fetch(`https://flipnova-backend-dafe7abc760b.herokuapp.com/api/dashboard-stats?clerkUserId=${user.id}`)
+    fetch(`http://localhost:4500/api/dashboard-stats?clerkUserId=${user.id}`)
       .then(res => res.json())
       .then(data => {
         const body: { searchesToday: number, maxSearches: number } = {
@@ -150,7 +150,7 @@ export default function MarketSnapshotPage() {
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
                     <CardTitle>Market Snapshot</CardTitle>
                     <Badge variant="outline" className="text-xs">
-                      v1 · {product.metadata.source}
+                      v2 · {product.metadata.source}
                     </Badge>
                   </CardHeader>
                   <CardContent className="space-y-6">
@@ -167,7 +167,7 @@ export default function MarketSnapshotPage() {
                     <div className="rounded-lg border border-primary/30 bg-primary/5 p-4">
                       <div className="flex items-center gap-2 mb-3 text-xs font-semibold uppercase text-primary">
                         <span className="h-2 w-2 rounded-full bg-primary" />
-                        Market Snapshot Decision Signal
+                        Market Intelligence Signal
                       </div>
                       <div className="flex items-end justify-between gap-4">
                         <span className="text-3xl font-bold tracking-tight">{product.decision.signal}</span>
@@ -222,34 +222,36 @@ export default function MarketSnapshotPage() {
                         </CardContent>
                       </Card>
 
-                      {/* Demand Signal */}
+                      {/* Volatility Signal */}
                       <Card className="col-span-1">
                         <CardHeader className="pb-2">
                           <div className="flex items-center gap-2 text-xs font-semibold uppercase text-muted-foreground">
-                            <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                            Demand Signal
+                            <span className="h-2 w-2 rounded-full bg-amber-500" />
+                            Price Volatility
                           </div>
                         </CardHeader>
                         <CardContent className="space-y-3">
                           <div className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">Sell-through</span>
-                            <span className="font-medium text-emerald-600">
-                              {product.demand.sellThroughRate}%
+                            <span className="text-muted-foreground">Volatility</span>
+                            <span className="font-medium text-amber-600">
+                              {product.volatility.priceVolatility}
                             </span>
                           </div>
                           <div className="h-2 rounded-full bg-muted">
                             <div
-                              className="h-full rounded-full bg-emerald-500"
-                              style={{ width: `${product.demand.sellThroughRate}%` }}
+                              className="h-full rounded-full bg-amber-500"
+                              style={{ width: `${Math.min(product.volatility.varianceIndex * 33, 100)}%` }}
                             />
                           </div>
                           <div className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">Activity</span>
-                            <span className="font-medium">{product.demand.activityLevel}</span>
+                            <span className="text-muted-foreground">Variance Index</span>
+                            <span className="font-medium">{product.volatility.varianceIndex}</span>
                           </div>
                           <div className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">Velocity</span>
-                            <span className="font-medium">{product.market.velocity}</span>
+                            <span className="text-muted-foreground">Pricing Stability</span>
+                            <span className="font-medium">
+                              {product.volatility.varianceIndex <= 0.4 ? "Stable" : product.volatility.varianceIndex <= 1.0 ? "Moderate" : "Wild"}
+                            </span>
                           </div>
                         </CardContent>
                       </Card>
@@ -258,7 +260,7 @@ export default function MarketSnapshotPage() {
                       <Card className="col-span-1">
                         <CardHeader className="pb-2">
                           <div className="flex items-center gap-2 text-xs font-semibold uppercase text-muted-foreground">
-                            <span className="h-2 w-2 rounded-full bg-primary" />
+                            <span className="h-2 w-2 rounded-full bg-blue-500" />
                             Competition
                           </div>
                         </CardHeader>
@@ -268,16 +270,16 @@ export default function MarketSnapshotPage() {
                             <span className="font-medium">{product.competition.activeListings}</span>
                           </div>
                           <div className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">Sold (30d)</span>
-                            <span className="font-medium">{product.competition.soldListings}</span>
-                          </div>
-                          <div className="flex justify-between text-sm">
                             <span className="text-muted-foreground">Level</span>
                             <span className="font-medium">{product.competition.level}</span>
                           </div>
                           <div className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">A:S Ratio</span>
-                            <span className="font-medium">{product.competition.ratio.toFixed(1)}</span>
+                            <span className="text-muted-foreground">Saturation</span>
+                            <span className="font-medium">{product.competition.saturation}</span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Confidence</span>
+                            <span className="font-medium">{product.decision.confidence}%</span>
                           </div>
                         </CardContent>
                       </Card>
@@ -287,25 +289,29 @@ export default function MarketSnapshotPage() {
                         <CardHeader className="pb-2">
                           <div className="flex items-center gap-2 text-xs font-semibold uppercase text-muted-foreground">
                             <span className="h-2 w-2 rounded-full bg-purple-500" />
-                            Market Stats
+                            Data Quality
                           </div>
                         </CardHeader>
                         <CardContent className="space-y-3">
-                          <div className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">Variance Index</span>
-                            <span className="font-medium">{product.market.varianceIndex}</span>
-                          </div>
                           <div className="flex justify-between text-sm">
                             <span className="text-muted-foreground">Sample Size</span>
                             <span className="font-medium">{product.metadata.rawCount}</span>
                           </div>
                           <div className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">Refined</span>
+                            <span className="text-muted-foreground">Refined (IQR)</span>
                             <span className="font-medium">{product.metadata.refinedCount}</span>
                           </div>
                           <div className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">Confidence</span>
-                            <span className="font-medium">{product.decision.confidence}%</span>
+                            <span className="text-muted-foreground">Outlier Rate</span>
+                            <span className="font-medium">
+                              {product.metadata.rawCount > 0
+                                ? Math.round((1 - product.metadata.refinedCount / product.metadata.rawCount) * 100)
+                                : 0}%
+                            </span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Region</span>
+                            <span className="font-medium">{product.region}</span>
                           </div>
                         </CardContent>
                       </Card>

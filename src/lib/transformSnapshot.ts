@@ -16,21 +16,13 @@ export function transformProcessorResponse(data: any, searchQuery: string): Mark
             p75: results.p75,
             fillPercentage: 0,
         },
-        demand: {
-            sellThroughRate: summary.sell_through_rate,
-            activityLevel: summary.activity_level,
-        },
         competition: {
             activeListings: summary.active_listings,
-            soldListings: summary.sold_listings,
             level: summary.competition_level,
-            ratio:
-                summary.sold_listings > 0
-                    ? +(summary.active_listings / summary.sold_listings).toFixed(1)
-                    : 0,
+            saturation: summary.market_saturation || "Unknown",
         },
-        market: {
-            velocity: summary.market_velocity,
+        volatility: {
+            priceVolatility: summary.price_volatility || "Low",
             varianceIndex: summary.variance_index,
         },
         decision: {

@@ -58,30 +58,4 @@ async function fetchActiveListings(searchQuery) {
     }
 }
 
-async function fetchSoldListings(searchQuery) {
-    const url = `${BROWSE_HOST}/item_summary/search?q=${encodeURIComponent(searchQuery)}&limit=200&filter=soldItemsOnly:true`;
-    const token = await getApplicationToken();
-    if (!token) throw new Error("EBAY_AUTH_FAILED");
-    try {
-        const res = await fetch(url, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json",
-                Accept: "application/json",
-                "Accept-Language": "en-US",
-                "X-EBAY-C-MARKETPLACE-ID": "EBAY_US",
-            },
-        });
-        if (!res.ok) throw new Error(`Sold search failed: ${res.status}`);
-        const data = await res.json();
-        return {
-            items: data.itemSummaries || [],
-            total: data.total || (data.itemSummaries ? data.itemSummaries.length : 0)
-        };
-    } catch (err) {
-        console.error("Sold search error:", err.message);
-        return { items: [], total: 0 };
-    }
-}
-
-module.exports = { fetchActiveListings, fetchSoldListings };
+module.exports = { fetchActiveListings };

@@ -47,26 +47,8 @@ export default function RecentSearches({ searches, onView, onToggleSaved }: Rece
 
             {/* Right: metrics + bars */}
             <div className="flex items-center gap-4 ml-4">
-              {/* Sell-through bar */}
-              <div className="hidden sm:flex flex-col items-end gap-0.5 min-w-[90px]">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground w-8 text-right">
-                    {item.sellThrough}%
-                  </span>
-                  <div className="h-2 w-16 rounded-full bg-muted overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-emerald-500"
-                      style={{ width: `${item.sellThrough}%` }}
-                    />
-                  </div>
-                </div>
-                <span className="text-[10px] text-muted-foreground leading-tight">
-                  sell‑through
-                </span>
-              </div>
-
               {/* Median price bar */}
-              <div className="hidden sm:flex flex-col items-end gap-0.5 min-w-[90px]">
+              <div className="flex flex-col items-end gap-0.5 min-w-[90px]">
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium w-12 text-right">
                     ${item.medianPrice}

@@ -57,8 +57,8 @@ export default function LandingPage() {
             <div className="grid md:grid-cols-3 gap-8">
               {[
                 {
-                  title: "eBay‑Grade Comps",
-                  body: "Pull sold comps, price bands, and sell‑through signals tuned for real eBay behavior.",
+                  title: "Real-Time Price Intelligence",
+                  body: "See live pricing bands, competition levels, and market saturation from active eBay listings.",
                 },
                 {
                   title: "5‑Minute Research Flow",

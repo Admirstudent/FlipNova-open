@@ -1,7 +1,7 @@
 const UserProfile = require('../models/UserProfile.cjs');
 const AnalysisRecord = require('../models/AnalysisRecord.cjs');
 const Usage = require('../models/Usage.cjs');
-const { fetchActiveListings, fetchSoldListings } = require("../services/ebayService.cjs");
+const { fetchActiveListings } = require("../services/ebayService.cjs");
 const processMarketData = require("../services/marketProcessor.cjs");
 
 function getToday() {
@@ -42,26 +42,19 @@ exports.analyze = async (req, res) => {
       });
     }
 
-    // ---------- 2. Fetch listings and run analysis ----------
-    const [activeResult, soldResult] = await Promise.all([
-      fetchActiveListings(searchQuery),
-      fetchSoldListings(searchQuery),
-    ]);
+    // ---------- 2. Fetch active listings and run analysis ----------
+    const activeResult = await fetchActiveListings(searchQuery);
 
     const activeItems = activeResult.items;
-    const soldItems = soldResult.items;
     const activeTotal = activeResult.total;
-    const soldTotal = soldResult.total;
 
-    if (activeTotal === 0 && soldTotal === 0) {
+    if (activeTotal === 0) {
       return res.json({ error: "EMPTY_DATASET", status: 404, message: "No listings found." });
     }
 
     const payload = {
       active: activeItems,
-      sold: soldItems,
       activeCount: activeTotal,
-      soldCount: soldTotal,
     };
 
     const processorResponse = await processMarketData(payload);

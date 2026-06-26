@@ -11,6 +11,7 @@ const analyzeRoutes = require("./routes/analyzeRoutes.cjs");
 const paymentRoutes = require("./routes/paymentRoutes.cjs");
 const { webhookHandler } = require("./routes/paymentRoutes.cjs"); // webhook handler
 const ebayRoutes = require('./routes/ebayRoutes.cjs');
+const capacityRoutes = require('./routes/capacityRoutes.cjs');
 
 const { healthCheck } = require("./controllers/healthController.cjs");
 const { initCounter } = require('./services/registrationService.cjs');
@@ -51,6 +52,7 @@ app.get("/health", healthCheck);
 app.use("/api", analyzeRoutes);
 app.use("/", paymentRoutes);
 app.use("/", ebayRoutes);
+app.use("/api", capacityRoutes);
 
 // Start
 const PORT = process.env.PORT || 4000;

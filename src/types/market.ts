@@ -11,18 +11,13 @@ export interface MarketSnapshot {
     p75: number;
     fillPercentage: number;
   };
-  demand: {
-    sellThroughRate: number;
-    activityLevel: string;
-  };
   competition: {
     activeListings: number;
-    soldListings: number;
     level: string;
-    ratio: number;
+    saturation: string;
   };
-  market: {
-    velocity: string;
+  volatility: {
+    priceVolatility: string;
     varianceIndex: number;
   };
   decision: {

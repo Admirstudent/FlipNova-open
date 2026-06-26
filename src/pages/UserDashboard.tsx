@@ -1,6 +1,6 @@
 // src/pages/UserDashboard.tsx
 import { useEffect, useState, useMemo } from "react";
-import { Search, Percent, Tag, Bookmark } from "lucide-react";
+import { Search, Percent, Bookmark } from "lucide-react";
 import { useUser } from "@clerk/clerk-react";
 
 import { transformProcessorResponse } from "@/lib/transformSnapshot";
@@ -15,9 +15,21 @@ import SavedSearchesModal from "@/components/SavedSearchesModal";
 
 import type { SearchItem } from "@/types/dashboard";
 
+interface DashboardStats {
+  searchesToday: number;
+  maxSearches: number;
+  avgSellThrough: number;
+  topCategory: string;
+  savedAnalyses: number;
+  categoryDistribution: { name: string; count: number }[];
+  sellThroughHistory: number[];
+  recentSearches: SearchItem[];
+  snapshots: any[];
+}
+
 function UserDashboard() {
   const { user } = useUser();
-  const [stats, setStats] = useState({
+  const [stats, setStats] = useState<DashboardStats>({
     searchesToday: 0,
     maxSearches: 25,
     avgSellThrough: 0,
@@ -44,8 +56,7 @@ function UserDashboard() {
 
   useEffect(() => {
     if (!user) return;
-    setLoading(true);
-    fetch(`https://flipnova-backend-dafe7abc760b.herokuapp.com/api/dashboard-stats?clerkUserId=${user.id}`)
+    fetch(`http://localhost:4500/api/dashboard-stats?clerkUserId=${user.id}`)
       .then((res) => res.json())
       .then((data) => {
         setStats(data);
@@ -62,7 +73,7 @@ function UserDashboard() {
     if (!user) return;
     setCancelling(true);
     try {
-      const res = await fetch('https://flipnova-backend-dafe7abc760b.herokuapp.com/cancel-subscription', {
+      const res = await fetch('http://localhost:4500/cancel-subscription', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ clerkUserId: user.id }),
@@ -78,16 +89,16 @@ function UserDashboard() {
 
   // Toggle saved status
   const handleToggleSaved = async (analysisId: string) => {
-    const item = stats.recentSearches.find(i => i.id === analysisId);
+    const item = stats.recentSearches.find((i: SearchItem) => i.id === analysisId);
     if (!item) return;
 
     const newSaved = !item.saved;
     const delta = newSaved ? 1 : -1;
 
     // Optimistic update – immediate UI change
-    setStats(prev => ({
+    setStats((prev: DashboardStats) => ({
       ...prev,
-      recentSearches: prev.recentSearches.map(i =>
+      recentSearches: prev.recentSearches.map((i: SearchItem) =>
         i.id === analysisId ? { ...i, saved: newSaved } : i
       ),
       savedAnalyses: prev.savedAnalyses + delta,
@@ -95,16 +106,16 @@ function UserDashboard() {
 
     try {
       const res = await fetch(
-        `https://flipnova-backend-dafe7abc760b.herokuapp.com/api/saved/${analysisId}`,
+        `http://localhost:4500/api/saved/${analysisId}`,
         { method: 'PUT' }
       );
       if (!res.ok) throw new Error('Server denied');
     } catch (err) {
       console.error('Toggle saved error:', err);
       // Revert the optimistic change on failure
-      setStats(prev => ({
+      setStats((prev: DashboardStats) => ({
         ...prev,
-        recentSearches: prev.recentSearches.map(i =>
+        recentSearches: prev.recentSearches.map((i: SearchItem) =>
           i.id === analysisId ? { ...i, saved: !newSaved } : i
         ),
         savedAnalyses: prev.savedAnalyses - delta,
